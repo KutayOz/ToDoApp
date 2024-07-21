@@ -12,7 +12,7 @@ const db = new sqlite3.Database(':memory:');
 db.serialize(() => {
   db.run("CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)");
   const stmt = db.prepare("INSERT INTO users (username, password) VALUES (?, ?)");
-  const hashedPassword = bcrypt.hashSync('dil@Kutay04052024', 20); // Change 'adminpassword' to your desired password
+  const hashedPassword = bcrypt.hashSync('dila@kutay04052024', 10); // Change 'adminpassword' to your desired password
   stmt.run('dilakuta', hashedPassword);
   stmt.finalize();
 
