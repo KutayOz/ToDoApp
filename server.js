@@ -12,9 +12,11 @@ const db = new sqlite3.Database(':memory:');
 db.serialize(() => {
   db.run("CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)");
   const stmt = db.prepare("INSERT INTO users (username, password) VALUES (?, ?)");
-  const hashedPassword = bcrypt.hashSync('adminpassword', 10); // Change 'adminpassword' to your desired password
+  const hashedPassword = bcrypt.hashSync('dil@Kutay04052024', 10); // Change 'adminpassword' to your desired password
   stmt.run('admin', hashedPassword);
   stmt.finalize();
+
+  db.run("CREATE TABLE todos (id INTEGER PRIMARY KEY, task TEXT)");
 });
 
 app.use(express.static('public'));
@@ -52,6 +54,25 @@ app.post('/login', (req, res) => {
     } else {
       res.redirect('/login');
     }
+  });
+});
+
+app.post('/add', checkAuth, (req, res) => {
+  const { task } = req.body;
+  db.run("INSERT INTO todos (task) VALUES (?)", [task], (err) => {
+    if (err) {
+      return console.error(err.message);
+    }
+    res.redirect('/');
+  });
+});
+
+app.get('/todos', checkAuth, (req, res) => {
+  db.all("SELECT * FROM todos", [], (err, rows) => {
+    if (err) {
+      throw err;
+    }
+    res.json(rows);
   });
 });
 

@@ -8,6 +8,23 @@
 </head>
 <body>
   <h1>To-Do List</h1>
-  <!-- Add your to-do list HTML here -->
+  <form id="todo-form" action="/add" method="POST">
+    <input type="text" name="task" id="task" placeholder="Enter a new task" required>
+    <button type="submit">Add Task</button>
+  </form>
+  <ul id="todo-list"></ul>
+  <script>
+    // Fetch existing to-do items from the server
+    fetch('/todos')
+      .then(response => response.json())
+      .then(data => {
+        const todoList = document.getElementById('todo-list');
+        data.forEach(todo => {
+          const li = document.createElement('li');
+          li.textContent = todo.task;
+          todoList.appendChild(li);
+        });
+      });
+  </script>
 </body>
 </html>
