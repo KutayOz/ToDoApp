@@ -21,7 +21,20 @@
         const todoList = document.getElementById('todo-list');
         data.forEach(todo => {
           const li = document.createElement('li');
-          li.textContent = todo.task;
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.checked = todo.completed;
+          checkbox.addEventListener('change', () => {
+            fetch('/toggle', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ id: todo.id, completed: checkbox.checked ? 1 : 0 })
+            });
+          });
+          li.appendChild(checkbox);
+          li.appendChild(document.createTextNode(todo.task));
           todoList.appendChild(li);
         });
       });
