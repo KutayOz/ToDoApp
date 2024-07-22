@@ -3,26 +3,26 @@ const express = require('express');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const { MongoClient, ObjectId } = require('mongodb');
-const { TextEncoder, TextDecoder } = require('util');
-global.TextEncoder = TextEncoder;
-global.TextDecoder = TextDecoder;
-
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // MongoDB setup
-const client = new MongoClient(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 let db;
 
-client.connect(err => {
-  if (err) {
+async function connectToDatabase() {
+  try {
+    const client = new MongoClient(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+    await client.connect();
+    db = client.db('main');
+    console.log('Connected to MongoDB');
+  } catch (err) {
     console.error('Failed to connect to MongoDB', err);
     process.exit(1);
   }
-  db = client.db('main');
-  console.log('Connected to MongoDB');
-});
+}
+
+connectToDatabase();
 
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
@@ -51,15 +51,16 @@ app.get('/login', (req, res) => {
   res.sendFile(__dirname + '/public/login.html');
 });
 
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   console.log('Login attempt:', { username, password });
 
-  db.collection('users').findOne({username}, (err, user) => {
-    if (err) {
-      console.error('Error fetching user:', err);
-      return res.status(500).send('Internal Server Error');
-    }
+  if (!db) {
+    return res.status(500).send('Database not connected');
+  }
+
+  try {
+    const user = await db.collection('users').findOne({username});
 
     if (!user) {
       console.log('User not found:', username);
@@ -75,47 +76,66 @@ app.post('/login', (req, res) => {
     } else {
       res.redirect('/login');
     }
-  });
+  } catch (err) {
+    console.error('Error during login:', err);
+    res.status(500).send('Internal Server Error');
+  }
 });
-
 
 app.get('/todo', checkAuth, (req, res) => {
   res.sendFile(__dirname + '/public/todo.html');
 });
 
-app.post('/add', checkAuth, (req, res) => {
+app.post('/add', checkAuth, async (req, res) => {
   const { task } = req.body;
   const userId = req.session.user._id;
-  db.collection('todos').insertOne({ userId, task, completed: false }, (err, result) => {
-    if (err) {
-      return console.error(err.message);
-    }
+
+  if (!db) {
+    return res.status(500).send('Database not connected');
+  }
+
+  try {
+    await db.collection('todos').insertOne({ userId, task, completed: false });
     res.redirect('/todo');
-  });
+  } catch (err) {
+    console.error('Error inserting todo:', err);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
-app.get('/todos', checkAuth, (req, res) => {
+app.get('/todos', checkAuth, async (req, res) => {
   const userId = req.session.user._id;
-  db.collection('todos').find({ userId }).toArray((err, todos) => {
-    if (err) {
-      throw err;
-    }
+
+  if (!db) {
+    return res.status(500).send('Database not connected');
+  }
+
+  try {
+    const todos = await db.collection('todos').find({ userId }).toArray();
     res.json(todos);
-  });
+  } catch (err) {
+    console.error('Error fetching todos:', err);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
-app.post('/toggle', checkAuth, (req, res) => {
+app.post('/toggle', checkAuth, async (req, res) => {
   const { id, completed } = req.body;
-  db.collection('todos').updateOne(
-    { _id: ObjectId(id) },
-    { $set: { completed: !!completed } },
-    (err) => {
-      if (err) {
-        return console.error(err.message);
-      }
-      res.sendStatus(200);
-    }
-  );
+
+  if (!db) {
+    return res.status(500).send('Database not connected');
+  }
+
+  try {
+    await db.collection('todos').updateOne(
+      { _id: ObjectId(id) },
+      { $set: { completed: !!completed } }
+    );
+    res.sendStatus(200);
+  } catch (err) {
+    console.error('Error updating todo:', err);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
 app.listen(PORT, () => {
