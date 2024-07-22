@@ -5,6 +5,8 @@ const bcrypt = require('bcryptjs');
 const { MongoClient } = require('mongodb');
 const util = require('util');
 
+var encoder = new util.TextEncoder('utf-8');
+
 if (typeof TextEncoder === 'undefined') {
   global.TextEncoder = util.TextEncoder;
 }
