@@ -3,11 +3,9 @@ const express = require('express');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const { MongoClient, ObjectId } = require('mongodb');
+global.TextEncoder = require('util').TextEncoder;
+global.TextDecoder = require('util').TextDecoder;
 
-const { TextEncoder, TextDecoder } = require('util');
-
-global.TextEncoder = TextEncoder;
-global.TextDecoder = TextDecoder;
 
 
 const app = express();
