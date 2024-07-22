@@ -4,6 +4,12 @@ const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const { MongoClient, ObjectId } = require('mongodb');
 
+const { TextEncoder, TextDecoder } = require('util');
+
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
+
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
