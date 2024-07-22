@@ -6,6 +6,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -20,4 +23,6 @@
     "text-encoding": "^0.7.0",
     "util": "^0.12.5"
   }
+
+  
 }
