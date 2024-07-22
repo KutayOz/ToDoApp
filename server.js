@@ -1,74 +1,57 @@
+require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
-const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
-const { MongoClient } = require('mongodb');
-const util = require('util');
-
-var encoder = new util.TextEncoder('utf-8');
-
-if (typeof TextEncoder === 'undefined') {
-  global.TextEncoder = util.TextEncoder;
-}
-
-if (typeof TextDecoder === 'undefined') {
-  global.TextDecoder = util.TextDecoder;
-}
-
-require('dotenv').config();
+const { MongoClient, ObjectId } = require('mongodb');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const MONGODB_URI = process.env.MONGODB_URI;
-const SESSION_SECRET = process.env.SESSION_SECRET;
 
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(session({
-  secret: SESSION_SECRET,
-  resave: false,
-  saveUninitialized: true
-}));
-
-const client = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+// MongoDB setup
+const client = new MongoClient(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 let db;
 
 client.connect(err => {
   if (err) {
-    console.error('Failed to connect to the database:', err);
+    console.error('Failed to connect to MongoDB', err);
     process.exit(1);
   }
-  db = client.db('todos');
+  db = client.db('main');
   console.log('Connected to MongoDB');
 });
 
-app.set('view engine', 'ejs');
 app.use(express.static('public'));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+}));
 
-app.get('/', (req, res) => {
+// Middleware to protect routes
+function checkAuth(req, res, next) {
   if (req.session.user) {
-    return res.redirect('/todo');
+    next();
+  } else {
+    res.redirect('/login');
   }
-  res.render('login');
+}
+
+// Routes
+app.get('/', (req, res) => {
+  res.redirect('/login');
 });
 
-app.get('/todo', (req, res) => {
-  if (!req.session.user) {
-    return res.redirect('/');
-  }
-  db.collection('todos').find().toArray((err, todos) => {
-    if (err) {
-      console.error('Error fetching todos:', err);
-      return res.status(500).send('Internal Server Error');
-    }
-    res.render('index', { todos });
-  });
+app.get('/login', (req, res) => {
+  res.sendFile(__dirname + '/public/login.html');
 });
 
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
   console.log('Login attempt:', { username, password });
 
-  db.collection('users').findOne({username}, (err, user) => {
+  db.collection('users').findOne({}, (err, user) => {
     if (err) {
       console.error('Error fetching user:', err);
       return res.status(500).send('Internal Server Error');
@@ -76,7 +59,7 @@ app.post('/login', (req, res) => {
 
     if (!user) {
       console.log('User not found:', username);
-      return res.redirect('/');
+      return res.redirect('/login');
     }
 
     const isPasswordMatch = bcrypt.compare(password, user.password);
@@ -86,41 +69,51 @@ app.post('/login', (req, res) => {
       req.session.user = user;
       res.redirect('/todo');
     } else {
-      res.redirect('/');
+      res.redirect('/login');
     }
   });
 });
 
-app.post('/addTodo', (req, res) => {
-  if (!req.session.user) {
-    return res.redirect('/');
-  }
 
-  const { item } = req.body;
-  db.collection('todos').insertOne({ item }, (err, result) => {
+app.get('/todo', checkAuth, (req, res) => {
+  res.sendFile(__dirname + '/public/todo.html');
+});
+
+app.post('/add', checkAuth, (req, res) => {
+  const { task } = req.body;
+  const userId = req.session.user._id;
+  db.collection('todos').insertOne({ userId, task, completed: false }, (err, result) => {
     if (err) {
-      console.error('Error adding todo:', err);
-      return res.status(500).send('Internal Server Error');
+      return console.error(err.message);
     }
     res.redirect('/todo');
   });
 });
 
-app.post('/deleteTodo', (req, res) => {
-  if (!req.session.user) {
-    return res.redirect('/');
-  }
-
-  const { id } = req.body;
-  db.collection('todos').deleteOne({ _id: new MongoClient.ObjectID(id) }, (err, result) => {
+app.get('/todos', checkAuth, (req, res) => {
+  const userId = req.session.user._id;
+  db.collection('todos').find({ userId }).toArray((err, todos) => {
     if (err) {
-      console.error('Error deleting todo:', err);
-      return res.status(500).send('Internal Server Error');
+      throw err;
     }
-    res.redirect('/todo');
+    res.json(todos);
   });
+});
+
+app.post('/toggle', checkAuth, (req, res) => {
+  const { id, completed } = req.body;
+  db.collection('todos').updateOne(
+    { _id: ObjectId(id) },
+    { $set: { completed: !!completed } },
+    (err) => {
+      if (err) {
+        return console.error(err.message);
+      }
+      res.sendStatus(200);
+    }
+  );
 });
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
