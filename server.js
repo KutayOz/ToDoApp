@@ -55,7 +55,7 @@ app.post('/login', (req, res) => {
   const { username, password } = req.body;
   console.log('Login attempt:', { username, password });
 
-  db.collection('users').findOne({}, (err, user) => {
+  db.collection('users').findOne({username}, (err, user) => {
     if (err) {
       console.error('Error fetching user:', err);
       return res.status(500).send('Internal Server Error');
