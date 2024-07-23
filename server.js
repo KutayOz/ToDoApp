@@ -3,6 +3,7 @@ const express = require('express');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const { MongoClient, ObjectId } = require('mongodb');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -48,7 +49,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-  res.sendFile(__dirname + '/public/login.html');
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
 app.post('/login', async (req, res) => {
@@ -60,14 +61,14 @@ app.post('/login', async (req, res) => {
   }
 
   try {
-    const user = await db.collection('users').findOne({username});
+    const user = await db.collection('users').findOne({ username });
 
     if (!user) {
       console.log('User not found:', username);
       return res.redirect('/login');
     }
 
-    const isPasswordMatch = bcrypt.compare(password, user.password);
+    const isPasswordMatch = await bcrypt.compare(password, user.password); // Added await here
     console.log('Password match:', isPasswordMatch);
 
     if (isPasswordMatch) {
@@ -83,7 +84,7 @@ app.post('/login', async (req, res) => {
 });
 
 app.get('/todo', checkAuth, (req, res) => {
-  res.sendFile(__dirname + '/public/todo.html');
+  res.sendFile(path.join(__dirname, 'public', 'todo.html'));
 });
 
 app.post('/add', checkAuth, async (req, res) => {
