@@ -19,5 +19,8 @@
     "mongodb": "^6.8.0",
     "text-encoding": "^0.7.0",
     "util": "^0.12.5"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }

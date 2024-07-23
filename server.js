@@ -3,7 +3,6 @@ const express = require('express');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const { MongoClient, ObjectId } = require('mongodb');
-const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -49,7 +48,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+  res.sendFile(__dirname + '/views/login.html');
 });
 
 app.post('/login', async (req, res) => {
@@ -68,7 +67,7 @@ app.post('/login', async (req, res) => {
       return res.redirect('/login');
     }
 
-    const isPasswordMatch = await bcrypt.compare(password, user.password); // Added await here
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
     console.log('Password match:', isPasswordMatch);
 
     if (isPasswordMatch) {
@@ -84,7 +83,7 @@ app.post('/login', async (req, res) => {
 });
 
 app.get('/todo', checkAuth, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'todo.html'));
+  res.sendFile(__dirname + '/views/todo.html');
 });
 
 app.post('/add', checkAuth, async (req, res) => {
