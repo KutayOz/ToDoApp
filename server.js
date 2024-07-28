@@ -56,6 +56,7 @@ app.post('/login', async (req, res) => {
   console.log('Login attempt:', { username, password });
 
   if (!db) {
+    console.error('Database not connected');
     return res.status(500).send('Database not connected');
   }
 
@@ -67,7 +68,7 @@ app.post('/login', async (req, res) => {
       return res.redirect('/login');
     }
 
-    const isPasswordMatch = await bcrypt.compare(password, user.password);
+    const isPasswordMatch = bcrypt.compare(password, user.password);
     console.log('Password match:', isPasswordMatch);
 
     if (isPasswordMatch) {
@@ -91,6 +92,7 @@ app.post('/add', checkAuth, async (req, res) => {
   const userId = req.session.user._id;
 
   if (!db) {
+    console.error('Database not connected');
     return res.status(500).send('Database not connected');
   }
 
@@ -107,6 +109,7 @@ app.get('/todos', checkAuth, async (req, res) => {
   const userId = req.session.user._id;
 
   if (!db) {
+    console.error('Database not connected');
     return res.status(500).send('Database not connected');
   }
 
@@ -123,12 +126,13 @@ app.post('/toggle', checkAuth, async (req, res) => {
   const { id, completed } = req.body;
 
   if (!db) {
+    console.error('Database not connected');
     return res.status(500).send('Database not connected');
   }
 
   try {
     await db.collection('todos').updateOne(
-      { _id: ObjectId(id) },
+      { _id: new ObjectId(id) },
       { $set: { completed: !!completed } }
     );
     res.sendStatus(200);
