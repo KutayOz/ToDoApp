@@ -5,7 +5,7 @@ body {
   background: linear-gradient(to bottom, #00008B, #008000) no-repeat;
   background-attachment: fixed;
   min-height: 100vh;
-  color: black;
+  color: rgb(255, 0, 140);
 }
 
 h1 {
@@ -14,11 +14,9 @@ h1 {
 }
 
 .container {
-  background: rgba(255, 255, 255, 0.658);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 800px;
-  margin: 20px auto;
+  margin: auto;
 }
 
 form {
