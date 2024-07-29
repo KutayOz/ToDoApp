@@ -1,11 +1,11 @@
 body {
   font-family: Arial, sans-serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   margin: 0;
   padding: 0;
-  background-color: #f4f4f4;
+  background: linear-gradient(to bottom, #00008B, #008000) no-repeat;
+  background-attachment: fixed;
+  min-height: 100vh;
+  color: black;
 }
 
 h1 {
@@ -13,13 +13,25 @@ h1 {
   margin-top: 20px;
 }
 
+.container {
+  background: rgba(255, 255, 255, 0.658);
+  width: 100%;
+  max-width: 800px;
+  margin: 20px auto;
+}
+
 form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin: 20px 0;
 }
 
 input[type="text"], input[type="password"] {
   padding: 10px;
   font-size: 16px;
+  width: calc(100% - 22px);
+  margin-bottom: 10px;
 }
 
 button {
@@ -29,6 +41,7 @@ button {
   color: white;
   border: none;
   cursor: pointer;
+  width: 100%;
 }
 
 button:hover {
@@ -51,4 +64,29 @@ li {
 
 li input[type="checkbox"] {
   margin-right: 10px;
+}
+
+.completed {
+  background-color: #9b9b9b;
+  text-decoration: line-through;
+  color: rgb(218, 218, 218);
+}
+
+/* Login specific styles */
+.login-container {
+  background: rgba(255, 255, 255, 0.658);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 300px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 10vh;
+}
+
+.login-container h1 {
+  margin-top: 10;
 }

@@ -19,6 +19,9 @@
                 checkbox.checked = todo.completed;
                 checkbox.onchange = () => toggleCompleted(todo._id, checkbox.checked);
                 li.appendChild(checkbox);
+                if (todo.completed) {
+                    li.classList.add('completed');
+                }
                 todoList.appendChild(li);
             });
         }
